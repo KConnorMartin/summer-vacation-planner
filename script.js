@@ -1,4 +1,4 @@
-import { getActivities, addActivity, updateVotes, subscribeToActivities, checkDuplicateUrl } from './database.js'
+import { getActivities, addActivity, updateVotes, subscribeToActivities, checkDuplicateUrl, deleteActivity } from './database.js'
 
 let activities = []
 
@@ -57,6 +57,18 @@ async function handleAddActivity() {
     } catch (error) {
         console.error('Error adding activity:', error)
         alert('Error adding activity. Please try again.')
+    }
+}
+
+async function handleDelete(id, title) {
+    if (confirm(`Are you sure you want to delete "${title}"?`)) {
+        console.log('Deleting activity:', id)
+        const success = await deleteActivity(id)
+        if (success) {
+            await loadActivities() // Reload activities after deletion
+        } else {
+            alert('Error deleting activity. Please try again.')
+        }
     }
 }
 
@@ -124,14 +136,25 @@ function renderActivities() {
         votes.className = 'votes'
         votes.textContent = `${activity.votes} votes`
         
+        const buttonContainer = document.createElement('div')
+        buttonContainer.className = 'button-container'
+        
         const voteButton = document.createElement('button')
         voteButton.textContent = '👍 Vote'
         voteButton.onclick = () => handleVote(activity.id)
         
+        const deleteButton = document.createElement('button')
+        deleteButton.textContent = '🗑️ Delete'
+        deleteButton.className = 'delete-button'
+        deleteButton.onclick = () => handleDelete(activity.id, activity.title)
+        
+        buttonContainer.appendChild(voteButton)
+        buttonContainer.appendChild(deleteButton)
+        
         content.appendChild(title)
         content.appendChild(link)
         content.appendChild(votes)
-        content.appendChild(voteButton)
+        content.appendChild(buttonContainer)
         
         tile.appendChild(thumbnailContainer)
         tile.appendChild(content)

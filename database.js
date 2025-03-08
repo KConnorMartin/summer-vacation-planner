@@ -19,6 +19,19 @@ export async function getActivities() {
     return data
 }
 
+export async function deleteActivity(id) {
+    const { error } = await supabase
+        .from('activities')
+        .delete()
+        .eq('id', id)
+    
+    if (error) {
+        console.error('Error deleting activity:', error)
+        return false
+    }
+    return true
+}
+
 export async function checkDuplicateUrl(url) {
     // Normalize URL by removing trailing slashes and converting to lowercase
     const normalizedUrl = url.toLowerCase().replace(/\/+$/, '')
