@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summer Vacation Activities</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Summer Vacation Activities</h1>
+        <p class="intro-text">Add ideas for activities to do during our summer vacation and vote on your favorites!</p>
+        <div class="input-section">
+            <input type="url" id="activityUrl" placeholder="Enter activity URL" required>
+            <input type="text" id="activityTitle" placeholder="Enter activity title" required>
+            <button id="addActivityBtn">Add Activity</button>
+        </div>
+        <div id="activities-grid" class="activities-grid">
+            <!-- Activities will be added here dynamically -->
+        </div>
+    </div>
+    <script src="script.js" defer></script>
+</body>
+</html>

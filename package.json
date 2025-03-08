@@ -1,0 +1,11 @@
+{
+  "name": "summer-vacation-planner",
+  "version": "1.0.0",
+  "description": "A web app for planning summer vacation activities",
+  "scripts": {
+    "start": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}
