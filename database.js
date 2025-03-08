@@ -19,7 +19,27 @@ export async function getActivities() {
     return data
 }
 
+export async function checkDuplicateUrl(url) {
+    // Normalize URL by removing trailing slashes and converting to lowercase
+    const normalizedUrl = url.toLowerCase().replace(/\/+$/, '')
+    
+    const { data, error } = await supabase
+        .from('activities')
+        .select('id, title')
+        .ilike('url', normalizedUrl + '%') // Use ilike for case-insensitive matching
+    
+    if (error) {
+        console.error('Error checking for duplicate URL:', error)
+        return null
+    }
+    
+    return data && data.length > 0 ? data[0] : null
+}
+
 export async function addActivity(activity) {
+    // Normalize URL before adding
+    activity.url = activity.url.toLowerCase().replace(/\/+$/, '')
+    
     const { data, error } = await supabase
         .from('activities')
         .insert([activity])

@@ -1,4 +1,4 @@
-import { getActivities, addActivity, updateVotes, subscribeToActivities } from './database.js'
+import { getActivities, addActivity, updateVotes, subscribeToActivities, checkDuplicateUrl } from './database.js'
 
 let activities = []
 
@@ -27,6 +27,13 @@ async function handleAddActivity() {
     }
 
     try {
+        // Check for duplicate URL
+        const duplicate = await checkDuplicateUrl(url)
+        if (duplicate) {
+            alert(`This activity has already been suggested! It's titled "${duplicate.title}"`)
+            return
+        }
+
         console.log('Fetching thumbnail...')
         const thumbnail = await fetchThumbnail(url)
         console.log('Thumbnail:', thumbnail)
