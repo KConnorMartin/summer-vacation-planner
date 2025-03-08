@@ -87,15 +87,8 @@ async function handleVote(id) {
 }
 
 async function fetchThumbnail(url) {
-    try {
-        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`)
-        const data = await response.json()
-        console.log('Microlink API response:', data)
-        return data.data?.image?.url || data.data?.logo?.url || null
-    } catch (error) {
-        console.error('Error fetching thumbnail:', error)
-        return null
-    }
+    // Use a free service that provides OpenGraph previews
+    return `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=128`
 }
 
 function renderActivities() {
