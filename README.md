@@ -44,7 +44,4 @@ python -m http.server 8000
 npx serve
 ```
 
-## Notes
-- The app uses localStorage for data persistence
-- Website thumbnails are provided by the Microlink API
-- No backend server is required
+
