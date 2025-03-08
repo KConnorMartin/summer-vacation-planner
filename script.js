@@ -1,13 +1,16 @@
-import { getActivities, addActivity, updateVotes, subscribeToActivities, supabase } from './database.js'
+import { getActivities, addActivity, updateVotes, subscribeToActivities } from './database.js'
 
 let activities = []
 
 async function loadActivities() {
+    console.log('Loading activities...')
     activities = await getActivities()
+    console.log('Loaded activities:', activities)
     renderActivities()
 }
 
 async function handleAddActivity() {
+    console.log('Adding new activity...')
     const urlInput = document.getElementById('activityUrl')
     const titleInput = document.getElementById('activityTitle')
     const url = urlInput.value.trim()
@@ -23,22 +26,35 @@ async function handleAddActivity() {
         return
     }
 
-    const thumbnail = await fetchThumbnail(url)
-    const newActivity = {
-        url,
-        title,
-        votes: 0,
-        thumbnail
-    }
+    try {
+        console.log('Fetching thumbnail...')
+        const thumbnail = await fetchThumbnail(url)
+        console.log('Thumbnail:', thumbnail)
+        
+        const newActivity = {
+            url,
+            title,
+            votes: 0,
+            thumbnail
+        }
 
-    const addedActivity = await addActivity(newActivity)
-    if (addedActivity) {
-        urlInput.value = ''
-        titleInput.value = ''
+        console.log('Adding to database:', newActivity)
+        const addedActivity = await addActivity(newActivity)
+        console.log('Added activity:', addedActivity)
+        
+        if (addedActivity) {
+            urlInput.value = ''
+            titleInput.value = ''
+            await loadActivities() // Reload activities after adding
+        }
+    } catch (error) {
+        console.error('Error adding activity:', error)
+        alert('Error adding activity. Please try again.')
     }
 }
 
 async function handleVote(id) {
+    console.log('Voting for activity:', id)
     const activity = activities.find(a => a.id === id)
     if (!activity) return
 
@@ -63,10 +79,10 @@ async function fetchThumbnail(url) {
 }
 
 function renderActivities() {
+    console.log('Rendering activities:', activities)
     const container = document.getElementById('activities-grid')
     container.innerHTML = ''
 
-    // Sort activities by votes
     activities.sort((a, b) => b.votes - a.votes)
 
     activities.forEach(activity => {
@@ -127,11 +143,13 @@ function isValidUrl(string) {
 
 // Set up real-time subscription
 subscribeToActivities((payload) => {
-    loadActivities() // Reload activities when changes occur
+    console.log('Real-time update:', payload)
+    loadActivities()
 })
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing...')
     loadActivities()
     document.getElementById('addActivityBtn').addEventListener('click', handleAddActivity)
 })
