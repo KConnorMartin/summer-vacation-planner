@@ -1,154 +1,137 @@
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded');
+import { getActivities, addActivity, updateVotes, subscribeToActivities, supabase } from './database.js'
+
+let activities = []
+
+async function loadActivities() {
+    activities = await getActivities()
+    renderActivities()
+}
+
+async function handleAddActivity() {
+    const urlInput = document.getElementById('activityUrl')
+    const titleInput = document.getElementById('activityTitle')
+    const url = urlInput.value.trim()
+    const title = titleInput.value.trim()
+
+    if (!url || !title) {
+        alert('Please enter both URL and title')
+        return
+    }
+
+    if (!isValidUrl(url)) {
+        alert('Please enter a valid URL')
+        return
+    }
+
+    const thumbnail = await fetchThumbnail(url)
+    const newActivity = {
+        url,
+        title,
+        votes: 0,
+        thumbnail
+    }
+
+    const addedActivity = await addActivity(newActivity)
+    if (addedActivity) {
+        urlInput.value = ''
+        titleInput.value = ''
+    }
+}
+
+async function handleVote(id) {
+    const activity = activities.find(a => a.id === id)
+    if (!activity) return
+
+    const newVotes = activity.votes + 1
+    const updatedActivity = await updateVotes(id, newVotes)
     
-    // Get DOM elements
-    const addButton = document.getElementById('addActivityBtn');
-    const urlInput = document.getElementById('activityUrl');
-    const titleInput = document.getElementById('activityTitle');
-    const activitiesGrid = document.getElementById('activities-grid');
+    if (updatedActivity) {
+        activity.votes = newVotes
+        renderActivities()
+    }
+}
 
-    // Load saved activities
-    let activities = [];
+async function fetchThumbnail(url) {
     try {
-        const saved = localStorage.getItem('activities');
-        if (saved) {
-            activities = JSON.parse(saved);
-            // Add thumbnails to existing activities if they don't have them
-            let needsUpdate = false;
-            activities.forEach(activity => {
-                if (!activity.thumbnail) {
-                    activity.thumbnail = `https://api.microlink.io/?url=${encodeURIComponent(activity.url)}&screenshot=true&embed=screenshot.url`;
-                    needsUpdate = true;
-                }
-            });
-            if (needsUpdate) {
-                localStorage.setItem('activities', JSON.stringify(activities));
-            }
-            console.log('Loaded saved activities:', activities);
-        }
+        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`)
+        const data = await response.json()
+        return data.data.screenshot.url
     } catch (error) {
-        console.error('Error loading saved activities:', error);
+        console.error('Error fetching thumbnail:', error)
+        return null
     }
+}
 
-    // Add event listener to the button
-    addButton.addEventListener('click', async function() {
-        console.log('Add button clicked');
-        
-        const url = urlInput.value.trim();
-        const title = titleInput.value.trim();
-        
-        console.log('Input values:', { url, title });
+function renderActivities() {
+    const container = document.getElementById('activities-grid')
+    container.innerHTML = ''
 
-        if (!url || !title) {
-            alert('Please enter both URL and title for the activity');
-            return;
+    // Sort activities by votes
+    activities.sort((a, b) => b.votes - a.votes)
+
+    activities.forEach(activity => {
+        const tile = document.createElement('div')
+        tile.className = 'activity-tile'
+        
+        const thumbnailContainer = document.createElement('div')
+        thumbnailContainer.className = 'thumbnail-container'
+        
+        if (activity.thumbnail) {
+            const thumbnail = document.createElement('img')
+            thumbnail.src = activity.thumbnail
+            thumbnail.alt = activity.title
+            thumbnail.onerror = () => {
+                thumbnailContainer.style.display = 'none'
+            }
+            thumbnailContainer.appendChild(thumbnail)
         }
 
-        try {
-            new URL(url);
-        } catch (_) {
-            alert('Please enter a valid URL (including http:// or https://)');
-            return;
-        }
-
-        // Create new activity
-        const activity = {
-            id: Date.now(),
-            url: url,
-            title: title,
-            votes: 0,
-            thumbnail: `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&embed=screenshot.url`
-        };
-
-        // Add to activities array
-        activities.push(activity);
+        const content = document.createElement('div')
+        content.className = 'activity-content'
         
-        // Save to localStorage
-        try {
-            localStorage.setItem('activities', JSON.stringify(activities));
-            console.log('Saved activities:', activities);
-        } catch (error) {
-            console.error('Error saving to localStorage:', error);
-            alert('Error saving activity. Please try again.');
-            return;
-        }
-
-        // Clear inputs
-        urlInput.value = '';
-        titleInput.value = '';
-
-        // Render the updated list
-        renderActivities();
-    });
-
-    function renderActivities() {
-        console.log('Rendering activities:', activities);
+        const title = document.createElement('h3')
+        title.textContent = activity.title
         
-        // Clear the grid
-        activitiesGrid.innerHTML = '';
+        const link = document.createElement('a')
+        link.href = activity.url
+        link.textContent = 'Visit Site'
+        link.target = '_blank'
+        
+        const votes = document.createElement('div')
+        votes.className = 'votes'
+        votes.textContent = `${activity.votes} votes`
+        
+        const voteButton = document.createElement('button')
+        voteButton.textContent = '👍 Vote'
+        voteButton.onclick = () => handleVote(activity.id)
+        
+        content.appendChild(title)
+        content.appendChild(link)
+        content.appendChild(votes)
+        content.appendChild(voteButton)
+        
+        tile.appendChild(thumbnailContainer)
+        tile.appendChild(content)
+        container.appendChild(tile)
+    })
+}
 
-        // Sort by votes
-        activities.sort((a, b) => b.votes - a.votes);
-
-        // Create tiles
-        activities.forEach(activity => {
-            const tile = document.createElement('div');
-            tile.className = 'activity-tile';
-            
-            // Create thumbnail container
-            const thumbnailContainer = document.createElement('div');
-            thumbnailContainer.className = 'thumbnail-container';
-            
-            // Create and setup thumbnail image
-            const thumbnail = document.createElement('img');
-            thumbnail.className = 'activity-thumbnail';
-            thumbnail.src = activity.thumbnail;
-            thumbnail.alt = `Preview of ${activity.title}`;
-            thumbnail.onerror = function() {
-                thumbnailContainer.style.display = 'none';
-                tile.classList.add('no-thumbnail');
-            };
-            thumbnailContainer.appendChild(thumbnail);
-            
-            const title = document.createElement('h3');
-            title.className = 'activity-title';
-            title.textContent = activity.title;
-            
-            const link = document.createElement('a');
-            link.href = activity.url;
-            link.className = 'activity-url';
-            link.textContent = activity.url;
-            link.target = '_blank';
-            
-            const voteSection = document.createElement('div');
-            voteSection.className = 'vote-section';
-            
-            const voteCount = document.createElement('span');
-            voteCount.className = 'vote-count';
-            voteCount.textContent = `${activity.votes} votes`;
-            
-            const voteButton = document.createElement('button');
-            voteButton.className = 'vote-button';
-            voteButton.textContent = 'Vote';
-            voteButton.addEventListener('click', function() {
-                activity.votes++;
-                localStorage.setItem('activities', JSON.stringify(activities));
-                renderActivities();
-            });
-
-            voteSection.appendChild(voteCount);
-            voteSection.appendChild(voteButton);
-            
-            tile.appendChild(thumbnailContainer);
-            tile.appendChild(title);
-            tile.appendChild(link);
-            tile.appendChild(voteSection);
-            
-            activitiesGrid.appendChild(tile);
-        });
+function isValidUrl(string) {
+    try {
+        new URL(string)
+        return true
+    } catch (_) {
+        return false
     }
+}
 
-    // Initial render
-    renderActivities();
-});
+// Set up real-time subscription
+subscribeToActivities((payload) => {
+    loadActivities() // Reload activities when changes occur
+})
+
+// Initial load
+document.addEventListener('DOMContentLoaded', () => {
+    loadActivities()
+    document.getElementById('addActivityBtn').addEventListener('click', handleAddActivity)
+})
