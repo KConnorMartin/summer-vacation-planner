@@ -88,10 +88,10 @@ async function handleVote(id) {
 
 async function fetchThumbnail(url) {
     try {
-        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}&screenshot=true&meta=false`)
+        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`)
         const data = await response.json()
         console.log('Microlink API response:', data)
-        return data.screenshot?.url || null
+        return data.data?.image?.url || data.data?.logo?.url || null
     } catch (error) {
         console.error('Error fetching thumbnail:', error)
         return null
