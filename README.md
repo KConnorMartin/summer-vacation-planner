@@ -2,10 +2,24 @@
 
 A web application for collecting and voting on summer vacation activities. Features include:
 - Add activities with URLs and titles
-- Automatic website thumbnails
+- Automatic website icons
+- Real-time updates across devices
 - Voting system
+- Duplicate activity prevention
 - Retro-styled interface
 - Responsive design
+
+## Features
+- **Cross-Device Sync**: Activities and votes are synchronized across all devices in real-time
+- **Duplicate Prevention**: Automatically detects and prevents duplicate activity submissions
+- **Website Icons**: Automatically fetches website icons for visual recognition
+- **Real-time Updates**: Changes appear instantly on all connected devices
+- **Voting System**: Collaborative voting to prioritize activities
+
+## Technical Stack
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: [Supabase](https://supabase.com) for database and real-time updates
+- **APIs**: Google Favicon service for website icons
 
 ## Deployment Options
 
@@ -35,6 +49,14 @@ Upload these files to your web hosting service:
 - index.html
 - styles.css
 - script.js
+- database.js
+
+## Setup
+1. Create a Supabase account at https://supabase.com
+2. Create a new project
+3. Run the SQL setup script from `setup.sql`
+4. Update `database.js` with your Supabase project URL and anon key
+5. Deploy using one of the methods above
 
 ## Local Development
 Run a local server:
@@ -45,6 +67,6 @@ npx serve
 ```
 
 ## Notes
-- The app uses localStorage for data persistence
-- Website thumbnails are provided by the Microlink API
-- No backend server is required
+- The app uses Supabase for data persistence and real-time updates
+- Website icons are provided by Google's Favicon service
+- No additional backend server is required
